@@ -1,0 +1,92 @@
+name: API tests
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "17 2 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: api-tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      TEST_MARKER: ${{ github.event_name == 'pull_request' && 'smoke' || 'not external' }}
+      REQUIRE_DEMO_SERVICES: "1"
+    steps:
+      - uses: actions/checkout@v6
+      - uses: astral-sh/setup-uv@v8
+        with:
+          version: "0.11.28"
+          python-version: "3.13"
+          enable-cache: true
+      - run: uv sync --all-extras
+      - name: Start demo services
+        run: docker compose up --detach --build --wait
+      - name: Run black-box suite
+        run: >-
+          uv run pytest tests/cases
+          -m "$TEST_MARKER"
+          --alluredir=allure-results
+          --junitxml=junit-results/api-tests.xml
+      - name: Capture service logs
+        if: ${{ always() }}
+        run: docker compose logs --no-color > service-logs.txt
+      - name: Upload raw test evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-test-evidence
+          if-no-files-found: warn
+          retention-days: 14
+          path: |
+            allure-results
+            junit-results
+            service-logs.txt
+      - name: Stop services
+        if: ${{ always() }}
+        run: docker compose down --volumes
+
+  report:
+    if: ${{ always() }}
+    needs: e2e
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/download-artifact@v5
+        with:
+          name: api-test-evidence
+      - name: Generate Allure HTML
+        run: npx --yes allure-commandline@2.35.1 generate allure-results --clean --output allure-report
+      - uses: actions/upload-artifact@v4
+        with:
+          name: allure-html
+          retention-days: 14
+          path: allure-report
+      - if: ${{ github.ref == 'refs/heads/main' && needs.e2e.result == 'success' }}
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: allure-report
+
+  deploy:
+    if: ${{ github.ref == 'refs/heads/main' && needs.e2e.result == 'success' }}
+    needs: [e2e, report]
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

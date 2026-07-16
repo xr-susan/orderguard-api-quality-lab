@@ -1,0 +1,57 @@
+name: orderguard
+
+services:
+  payment-mock:
+    build:
+      context: .
+      dockerfile: services/payment_mock/Dockerfile
+    environment:
+      PAYMENT_SIGNING_SECRET: ${PAYMENT_CALLBACK_SECRET:-dev-payment-secret-change-me}
+      PAYMENT_MOCK_TIMEOUT_SECONDS: "0.5"
+      PAYMENT_CALLBACK_TIMEOUT_SECONDS: "2.0"
+    ports:
+      - "8001:8001"
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - import urllib.request; urllib.request.urlopen('http://localhost:8001/health')
+      interval: 2s
+      timeout: 2s
+      retries: 20
+      start_period: 3s
+
+  order-service:
+    build:
+      context: .
+      dockerfile: services/order_service/Dockerfile
+    environment:
+      APP_ENV: test
+      ORDER_DATABASE_URL: sqlite:////data/orderguard.db
+      AUTH_SECRET: ${AUTH_SECRET:-dev-jwt-secret-change-me}
+      PAYMENT_BASE_URL: http://payment-mock:8001
+      ORDER_PUBLIC_BASE_URL: http://order-service:8000
+      PAYMENT_CALLBACK_SECRET: ${PAYMENT_CALLBACK_SECRET:-dev-payment-secret-change-me}
+      PAYMENT_TIMEOUT_SECONDS: "0.4"
+      PAYMENT_MAX_ATTEMPTS: "3"
+    ports:
+      - "8000:8000"
+    volumes:
+      - orderguard-data:/data
+    depends_on:
+      payment-mock:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - import urllib.request; urllib.request.urlopen('http://localhost:8000/health')
+      interval: 2s
+      timeout: 2s
+      retries: 20
+      start_period: 3s
+
+volumes:
+  orderguard-data:

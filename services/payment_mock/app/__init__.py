@@ -1,0 +1,1 @@
+"""Payment mock application package."""

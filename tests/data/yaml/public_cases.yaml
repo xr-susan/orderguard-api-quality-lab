@@ -1,0 +1,43 @@
+cases:
+  - id: DD-YAML-HEALTH-001
+    name: health endpoint exposes the order service identity
+    markers: [functional]
+    request:
+      method: GET
+      path: /health
+    expected:
+      status: 200
+      json_contains:
+        status: ok
+        service: order-service
+
+  - id: DD-YAML-AUTH-001
+    name: invalid credentials are rejected with a stable error code
+    markers: [functional, security]
+    request:
+      method: POST
+      path: /auth/token
+      json:
+        username: demo
+        password: definitely-wrong
+    expected:
+      status: 401
+      json_contains:
+        detail:
+          code: INVALID_CREDENTIALS
+
+  - id: DD-YAML-ORDER-001
+    name: creating an order without a bearer token is rejected
+    markers: [functional, security]
+    request:
+      method: POST
+      path: /orders
+      headers:
+        Idempotency-Key: unauthenticated-create
+      json:
+        merchant_order_no: UNAUTH-ORDER-001
+        sku: SKU-001
+        quantity: 1
+    expected:
+      status: 401
+

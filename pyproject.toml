@@ -1,0 +1,90 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "orderguard-api-quality-lab"
+version = "0.1.0"
+description = "A production-minded API quality engineering lab for order and payment workflows."
+readme = "README.md"
+requires-python = ">=3.12,<3.15"
+license = { text = "MIT" }
+authors = [{ name = "OrderGuard contributors" }]
+dependencies = [
+  "allure-pytest>=2.16,<3",
+  "fastapi>=0.138,<0.140",
+  "httpx>=0.28,<0.29",
+  "jsonschema>=4.26,<5",
+  "openpyxl>=3.1,<4",
+  "pydantic>=2.13,<3",
+  "pydantic-settings>=2.14,<3",
+  "PyJWT>=2.13,<3",
+  "PyYAML>=6,<7",
+  "SQLAlchemy>=2.0,<3",
+  "tenacity>=9,<10",
+  "uvicorn[standard]>=0.49,<0.50",
+]
+
+[project.optional-dependencies]
+dev = [
+  "mypy>=1.19,<2",
+  "pytest>=9,<10",
+  "pytest-cov>=7,<8",
+  "ruff>=0.15,<0.16",
+  "types-PyYAML>=6.0,<7",
+]
+
+[project.entry-points.pytest11]
+orderguard = "api_testkit.pytest_plugin"
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+addopts = "-ra --strict-config --strict-markers"
+testpaths = ["tests", "services/order_service/tests", "services/payment_mock/tests"]
+pythonpath = ["src", "."]
+markers = [
+  "smoke: critical happy-path checks",
+  "functional: business behavior and negative checks",
+  "contract: API schema and contract checks",
+  "resilience: dependency fault and recovery checks",
+  "security: authentication, authorization, signature, and redaction checks",
+  "external: optional tests against public APIs",
+  "slow: tests that intentionally wait or exercise retry budgets",
+]
+
+[tool.coverage.run]
+branch = true
+source = ["src/api_testkit"]
+omit = [
+  "src/api_testkit/observability/allure_adapter.py",
+  "src/api_testkit/pytest_plugin.py",
+]
+
+[tool.coverage.report]
+fail_under = 80
+show_missing = true
+skip_covered = true
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+extend-exclude = ["allure-results", "allure-report"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
+ignore = ["B008"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = ["S101"]
+"services/**/tests/**/*.py" = ["S101"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+warn_unused_configs = true
+exclude = ["services/.*/tests", "tests"]

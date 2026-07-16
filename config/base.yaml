@@ -1,0 +1,13 @@
+base_url: http://localhost:8000
+timeout:
+  connect: 2.0
+  read: 5.0
+  write: 5.0
+  pool: 2.0
+retry:
+  max_attempts: 3
+  total_budget: 8.0
+  base_wait: 0.2
+  max_wait: 2.0
+  jitter: 0.1
+log_level: INFO

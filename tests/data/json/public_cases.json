@@ -1,0 +1,36 @@
+{
+  "cases": [
+    {
+      "id": "DD-JSON-PRODUCT-001",
+      "name": "seed product is visible",
+      "markers": ["functional"],
+      "request": {
+        "method": "GET",
+        "path": "/products"
+      },
+      "expected": {
+        "status": 200,
+        "json_paths": {
+          "$[0].sku": "SKU-001",
+          "$[0].currency": "USD"
+        }
+      }
+    },
+    {
+      "id": "DD-JSON-AUTH-001",
+      "name": "empty username fails request validation",
+      "markers": ["functional"],
+      "request": {
+        "method": "POST",
+        "path": "/auth/token",
+        "json": {
+          "username": "",
+          "password": "demo123"
+        }
+      },
+      "expected": {
+        "status": 422
+      }
+    }
+  ]
+}

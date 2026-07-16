@@ -1,0 +1,1 @@
+"""Payment mock service tests."""

@@ -1,0 +1,22 @@
+[
+  {
+    "name": "Configuration or test-data error",
+    "matchedStatuses": ["broken"],
+    "messageRegex": ".*(ConfigurationError|CaseDataError).*"
+  },
+  {
+    "name": "Transport or dependency failure",
+    "matchedStatuses": ["broken", "failed"],
+    "messageRegex": ".*(ApiTransportError|ConnectError|Timeout|429|502|503|504).*"
+  },
+  {
+    "name": "Contract failure",
+    "matchedStatuses": ["failed"],
+    "messageRegex": ".*(ContractValidationError|schema).*"
+  },
+  {
+    "name": "Business assertion failure",
+    "matchedStatuses": ["failed"]
+  }
+]
+
