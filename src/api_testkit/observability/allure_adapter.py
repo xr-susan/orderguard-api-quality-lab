@@ -13,6 +13,9 @@ from typing import Any
 
 from api_testkit.observability.redaction import redact, redact_text
 
+# Declared as Any so the module-or-None fallback below type-checks: mypy would
+# otherwise infer the module type from the import and reject the None assignment.
+_allure: Any
 try:  # pragma: no cover - depends on the optional report extra
     import allure as _allure
 except ImportError:  # pragma: no cover - the default in minimal environments

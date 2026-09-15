@@ -117,7 +117,10 @@ class RetryWait:
                 if server_wait is not None:
                     return server_wait
         exponent = max(0, retry_state.attempt_number - 1)
-        delay = min(self.policy.max_wait, self.policy.base_wait * (2**exponent))
+        # 2.0 ** int is typed float by mypy; `2 ** int` is typed Any, which would
+        # poison the min() below and trip --strict's no-any-return.
+        backoff = self.policy.base_wait * (2.0**exponent)
+        delay = min(self.policy.max_wait, backoff)
         if self.policy.jitter:
             delay += self.random_source.uniform(0.0, self.policy.jitter)
         return delay

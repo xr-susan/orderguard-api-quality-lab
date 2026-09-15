@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from typing import Any
+from typing import Any, cast
 
 from .core import _json_value
 
@@ -38,7 +38,9 @@ def assert_json_schema(actual_or_response: Any, schema: Mapping[str, Any] | bool
 
     try:
         validator_class = validator_for(schema)
-        validator_class.check_schema(schema)
+        # jsonschema accepts any Mapping here; its stub narrows to dict, and the
+        # isinstance check above has already confirmed Mapping-or-bool.
+        validator_class.check_schema(cast("dict[Any, Any]", schema))
         validator = validator_class(schema)
     except (SchemaError, TypeError, ValueError) as exc:
         detail = exc.message if isinstance(exc, SchemaError) else str(exc)

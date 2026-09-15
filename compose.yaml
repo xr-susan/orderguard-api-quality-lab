@@ -23,9 +23,13 @@ services:
       start_period: 3s
 
   order-service:
+    # Build context is the service directory, not the repo root: this Dockerfile
+    # uses service-local paths (`COPY requirements.txt`, `COPY app ./app`) and
+    # ships its own .dockerignore. Only payment-mock builds from the repo root,
+    # because it installs the package from pyproject.toml and needs src/.
     build:
-      context: .
-      dockerfile: services/order_service/Dockerfile
+      context: services/order_service
+      dockerfile: Dockerfile
     environment:
       APP_ENV: test
       ORDER_DATABASE_URL: sqlite:////data/orderguard.db

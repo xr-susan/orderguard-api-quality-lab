@@ -151,7 +151,8 @@ def _reject_formulas(path: Path, sheet_name: str | None) -> str:
                         row=cell.row,
                         case_id=case_id,
                     )
-        return worksheet.title
+        # openpyxl is untyped here, so coerce explicitly to satisfy the -> str contract.
+        return str(worksheet.title)
     finally:
         workbook.close()
 

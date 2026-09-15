@@ -15,7 +15,10 @@ from pydantic import (
     model_validator,
 )
 
-from api_testkit.errors import CaseDataError
+# Re-exported deliberately: the loaders import CaseDataError from this module.
+# The `as` form marks it as an explicit re-export so mypy's
+# no_implicit_reexport (part of --strict) accepts the downstream imports.
+from api_testkit.errors import CaseDataError as CaseDataError
 
 # A descriptive compatibility name for callers that prefer loader terminology.
 DataLoadError = CaseDataError

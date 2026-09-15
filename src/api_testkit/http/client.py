@@ -7,7 +7,7 @@ import time
 import uuid
 from collections.abc import Callable, Mapping, Sequence
 from types import TracebackType
-from typing import Any, Self
+from typing import Any, Self, cast
 
 import httpx
 from tenacity import (
@@ -58,7 +58,9 @@ def _httpx_timeout(value: TimeoutSettings | httpx.Timeout | float | None) -> htt
 
 
 def _header_value(headers: httpx.Headers, name: str) -> str | None:
-    return headers.get(name)
+    # httpx.Headers.get is typed as Any; narrow it to the declared return type.
+    value = headers.get(name)
+    return None if value is None else str(value)
 
 
 class ApiClient:
@@ -174,7 +176,11 @@ class ApiClient:
                     normalised_method,
                     url,
                     headers=request_headers,
-                    params=params,
+                    # This method's signature accepts a deliberately permissive
+                    # query type (Any values, Mapping or Sequence). httpx's stub
+                    # spells out a narrower list/tuple-only union, so the cast
+                    # records that httpx validates the concrete shape at runtime.
+                    params=cast("Any", params),
                     json=json,
                     data=data,
                     content=content,
@@ -200,8 +206,8 @@ class ApiClient:
                         "body": json if json is not None else data,
                     },
                 )
-                for hook in self._request_hooks:
-                    hook(RequestObservation(request=request, attempt=attempts))
+                for request_hook in self._request_hooks:
+                    request_hook(RequestObservation(request=request, attempt=attempts))
                 try:
                     response = self._client.send(request)
                 except httpx.TransportError:
@@ -244,8 +250,8 @@ class ApiClient:
                     attempt=attempts,
                     elapsed_seconds=elapsed,
                 )
-                for hook in self._response_hooks:
-                    hook(observation)
+                for response_hook in self._response_hooks:
+                    response_hook(observation)
                 return response
 
         can_retry = (

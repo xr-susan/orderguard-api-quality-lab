@@ -17,7 +17,11 @@ from api_testkit.observability import (
 
 
 def test_context_is_nested_and_restored() -> None:
-    assert get_context().case_id is None
+    # The autouse `_api_test_context` fixture binds an ambient run/case id for
+    # every test, so there is no "empty" baseline to assert against. Capture the
+    # ambient snapshot instead, and assert that nested bindings unwind back to it.
+    ambient = get_context()
+
     with bind_context(run_id="run-1", case_id="case-1"):
         assert get_context().run_id == "run-1"
         assert get_context().case_id == "case-1"
@@ -26,7 +30,7 @@ def test_context_is_nested_and_restored() -> None:
             assert get_context().retry_attempt == 2
         assert get_context().case_id == "case-1"
         assert get_context().retry_attempt is None
-    assert get_context().run_id is None
+    assert get_context() == ambient
 
 
 def test_recursive_redaction_does_not_mutate_source() -> None:
