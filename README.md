@@ -1,10 +1,15 @@
 # OrderGuard API Quality Lab
 
+[![API tests](https://github.com/xr-susan/orderguard-api-quality-lab/actions/workflows/api-tests.yml/badge.svg)](https://github.com/xr-susan/orderguard-api-quality-lab/actions/workflows/api-tests.yml)
+[![Quality](https://github.com/xr-susan/orderguard-api-quality-lab/actions/workflows/quality.yml/badge.svg)](https://github.com/xr-susan/orderguard-api-quality-lab/actions/workflows/quality.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/Python-3.12--3.14-3776ab.svg)](pyproject.toml)
+
 一个Python 接口自动化测试项目。它不是只对公开 API 发请求的脚本集合，而是把可复用测试框架、真实 HTTP 黑盒测试、可编程依赖 Mock、风险驱动用例和 CI 证据链放在同一个可运行仓库中。
 
 > 业务场景：订单创建 → 库存预占 → 支付依赖调用 → 异步支付回调 → 状态与库存收敛。
 
-## 
+## 核心设计
 
 - **分层而非堆脚本**：`api_testkit` 与业务用例、服务实现解耦；配置、HTTP、认证、断言、数据加载、日志与 Allure 集成均有独立边界。
 - **数据驱动且有类型约束**：YAML、JSON、Excel 被收敛成同一套 Pydantic 用例模型；格式错误会在执行前失败。
@@ -30,7 +35,7 @@ flowchart LR
 
 | 范畴 | 选择 |
 | --- | --- |
-| 语言与测试 | Python 3.12–3.14、pytest、pytest-cov |
+| 语言与测试 | Python 3.12–3.14、pytest、coverage |
 | HTTP 与重试 | httpx、tenacity、基于方法安全性与总预算的重试策略 |
 | 配置与数据 | Pydantic Settings、PyYAML、openpyxl |
 | 演示系统 | FastAPI、SQLAlchemy、SQLite、JWT、HMAC |
@@ -53,7 +58,8 @@ docker compose down --volumes
 ```bash
 uv run ruff check .
 uv run mypy src/api_testkit
-uv run pytest tests/framework_unit --cov=src/api_testkit --cov-report=term-missing
+uv run coverage run -m pytest tests/framework_unit
+uv run coverage report --show-missing
 ```
 
 首次在可联网环境执行 `uv lock` 后，请将生成的 `uv.lock` 提交；CI 当前使用 `uv sync --all-extras`，确保新克隆仓库也能直接解析并安装依赖。

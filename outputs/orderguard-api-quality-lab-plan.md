@@ -37,7 +37,7 @@
 | 被测系统 | FastAPI + SQLite | 只实现订单链路必需的最小业务；v1 不做完整商城 |
 | Mock 服务 | 独立 FastAPI 服务 | 支付业务接口、故障控制接口和调用记录 |
 | 运行环境 | Docker Compose | 订单服务和支付 Mock 一键启动、健康检查和隔离网络 |
-| 工程质量 | Ruff、mypy、pytest-cov | 格式/静态检查、类型检查、框架核心覆盖率门禁 |
+| 工程质量 | Ruff、mypy、coverage | 格式/静态检查、类型检查、框架核心覆盖率门禁 |
 | CI/CD | GitHub Actions + GitHub Pages | PR 分层测试、构建报告、上传 artifacts、主分支发布在线报告 |
 
 版本策略：在 `pyproject.toml` 声明兼容范围，在 `uv.lock` 锁定可复现版本；依赖升级由单独 PR 完成。CI Action 和 uv 也固定稳定版本或提交 SHA，不使用浮动的 `latest`。

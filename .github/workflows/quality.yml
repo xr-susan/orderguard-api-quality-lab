@@ -31,9 +31,15 @@ jobs:
       - run: uv sync --all-extras
       - run: uv run ruff check .
       - run: uv run mypy src/api_testkit
+      # Measured with `coverage run` rather than `pytest --cov`: pytest-cov only
+      # starts tracing once pytest has loaded plugins, so everything imported by
+      # the `pytest11` entry point (api_testkit.config / api_testkit.http and the
+      # modules they pull in) loses its import-time lines and the report
+      # under-counts by roughly 15 points. `coverage run -m pytest` traces from
+      # process start, which is what the fail_under gate is meant to measure.
       - name: Framework unit tests
-        run: >-
-          uv run pytest tests/framework_unit
-          --cov=src/api_testkit
-          --cov-report=term-missing
-          --cov-report=xml
+        run: uv run coverage run -m pytest tests/framework_unit
+      - name: Coverage gate
+        run: uv run coverage report --show-missing
+      - name: Coverage XML
+        run: uv run coverage xml

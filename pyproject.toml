@@ -27,10 +27,18 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
+  # `coverage run -m pytest` is the measurement entry point (see quality.yml).
+  # pytest-cov is deliberately NOT used: it only starts tracing after pytest has
+  # loaded plugins, so modules imported by the `pytest11` entry point lose their
+  # import-time lines and the report under-counts by ~15 points.
+  "coverage[toml]>=7,<8",
   "mypy>=1.19,<2",
   "pytest>=9,<10",
-  "pytest-cov>=7,<8",
   "ruff>=0.15,<0.16",
+  # Library stubs needed by `mypy --strict` for third-party imports
+  # (jsonschema in assertions/schema.py, openpyxl in data/excel_loader.py).
+  "types-jsonschema>=4.23,<5",
+  "types-openpyxl>=3.1,<4",
   "types-PyYAML>=6.0,<7",
 ]
 
@@ -42,6 +50,9 @@ package-dir = { "" = "src" }
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+api_testkit = ["py.typed"]
 
 [tool.pytest.ini_options]
 addopts = "-ra --strict-config --strict-markers"
