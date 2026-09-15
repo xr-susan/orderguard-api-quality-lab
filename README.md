@@ -113,9 +113,8 @@ curl -X POST http://localhost:8001/__admin/scenarios \
 - `api-tests.yml`：Docker Compose 启动两项服务；PR 运行 smoke，主分支/定时任务运行完整黑盒套件。
 - 每次执行上传 Allure 原始结果、JUnit XML 和服务日志；主分支成功后生成 HTML 报告并发布到 GitHub Pages（需在仓库 Settings → Pages 中选择 **GitHub Actions**）。
 
-## 面试时可以这样讲
 
-“我把接口自动化拆成可复用测试内核与业务测试层。订单服务和支付 Mock 不是测试替身，而是为了制造幂等、重试、回调验签和库存补偿这些真实接口风险。用例通过 YAML/JSON/Excel 统一建模，并在 CI 里留下 Allure、JUnit 与服务日志证据。这样既能展示框架设计，也能解释每个自动化用例对应的业务风险。”
+
 
 ## 进一步阅读
 
